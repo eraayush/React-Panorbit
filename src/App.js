@@ -1,24 +1,45 @@
-import logo from './logo.svg';
+import React, { useEffect } from 'react';
+import axios from 'axios';
+import { useDispatch, useSelector } from 'react-redux';
 import './App.css';
+import { apiFailure, onLoading, apiSuccess } from './redux/actions/actions.js';
+import MainPage from './components/MainPage/MainPage';
+import Profile from './components/ProfilePage/Profile/Profile';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+
+const API_URL = 'https://panorbit.in/api/users.json';
 
 function App() {
+  const dispatch = useDispatch();
+  const { loading, error, panorbitData } = useSelector((state) => state);
+
+  useEffect(() => {
+    dispatch(onLoading());
+    axios
+      .get(API_URL)
+      .then((response) => {
+        dispatch(apiSuccess(response.data.users));
+      })
+      .catch((error) => {
+        dispatch(apiFailure(error));
+      });
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<MainPage />} />
+        <Route exact path="/profile" element={<Profile />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
